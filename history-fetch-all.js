@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { createHistoryModule, FaxStatus, sipgateIO } from 'sipgateio';
+import { createHistoryModule, sipgateIO } from 'sipgateio';
 import fs from 'fs';
 
 dotenv.config();
@@ -14,15 +14,16 @@ const client = sipgateIO({
 	token: personalAccessToken,
 });
 const historyModule = createHistoryModule(client);
+let areaCodeMap = parseCsv();
+const areaCodeMatch = [];
 
 historyModule
 	.fetchAll(
-		{ types: ['SMS', 'FAX', 'CALL'], directions: ['INCOMING'] }
+		{ types: ['SMS', 'FAX', 'CALL'], directions: ['INCOMING'] },
+		{offset:0, limit:100}
 	)
 	.then((historyElements) => {
 
-		// sicherstellen, dass alle nummer mit +49 anfangen
-		// Ländervorwahlen entfernen
 		historyElements.forEach((e) => {
 			let number = e.source;
 			if(!number.startsWith('+49')){
@@ -31,28 +32,31 @@ historyModule
 			let areaCodeLengthTwo, areaCodeLengthThree, areaCodeLengthFour;
 			number = number.substring(3);
 
-			//Die Vorwahlen zu isolieren hat sich als sehr schwer herausgestellt, da die übergebene Nummer keine Formatierung hat.
-			//Da es Vorwahlen gibt, die sich stark ähneln kann es zu Überschneidungen kommen. Z.B.: 212 Solingen und 2129 Haan Rheinl.
+			areaCodeLengthTwo = number.substr(0,2);
+			areaCodeLengthThree = number.substr(0,3);
+			areaCodeLengthFour = number.substr(0,4);
 
-			areaCodeLengthTwo = number.substring(2);
-			areaCodeLengthThree = number.substring(3);
-			areaCodeLengthFour = number.substring(4);
-			areaCodeMap = parseCsv();
-			if(areaCodeLengthTwo in  areaCodeMap){
-				//areaCodeMap[areaCodeLengthTwo] 
+			if(areaCodeMap[areaCodeLengthFour]){
+				areaCodeMap[areaCodeLengthFour].occurences +=1;
+			}else if(areaCodeMap[areaCodeLengthThree]) {
+				areaCodeMap[areaCodeLengthThree].occurences += 1;
 			}
-
-			
+			else if(areaCodeMap[areaCodeLengthTwo]){
+				areaCodeMap[areaCodeLengthTwo].occurences +=1;
+			}
 		})
 
-		// Vorwahl ermitteln
-
-
-		// gefundene Vorwahlen in ein Objekt speichern und inkrementieren
-		//console.log(historyElements);
+		Object.keys(areaCodeMap).forEach(function(key) {
+			if(areaCodeMap[key].occurences > 0){
+				areaCodeMatch.push({ areacode:key, ...areaCodeMap[key]})
+			}
+		});
+		areaCodeMatch.sort(function(firstCity,secondCity){
+			return secondCity.occurences - firstCity.occurences;
+		})
+		console.log(areaCodeMatch)
 	})
 	.catch(console.error);
-
 
 function parseCsv(){
 	const areaCodeMap = {}
@@ -63,5 +67,3 @@ function parseCsv(){
 	}
 	return areaCodeMap;
 }
-
-console.log(parseCsv());
