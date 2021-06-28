@@ -47,18 +47,16 @@ historyModule
         areaCodeMatch.sort((firstCity, secondCity) => {
             return secondCity.occurences - firstCity.occurences;
         });
-        console.log(areaCodeMatch);
-        createForecastCsv(areaCodeMatch);
 
-		let postalCodeMap = parsePostalCodeCsv('ww-german-postal-codes.csv');
-		areaCodeMatch.forEach(element => {
-			console.log(postalCodeMap[element.city])
-		});
+        let postalCodeMap = parsePostalCodeCsv('./data/postal-codes.csv');
+        areaCodeMatch.forEach((element) => {
+            console.log(postalCodeMap[element.city]);
+        });
 
         let heatDataJson = createHeatData(areaCodeMap, postalCodeMap);
-        fs.writeFile('heat_data.json', heatDataJson, (err) => {
+        fs.writeFile('./map/heat.json', heatDataJson, (err) => {
             if (err) return console.log(err);
-            console.log('Created heat_data.json');
+            console.log('Created ./map/heat.json');
         });
     })
     .catch(console.error);
@@ -66,7 +64,7 @@ historyModule
 function parseAreaCodeCsv() {
     const areaCodeMap = {};
     const allAreaCodes = fs
-        .readFileSync('./area_codes.csv')
+        .readFileSync('./data/area_codes.csv')
         .toString()
         .split('\n');
     for (const line of allAreaCodes.slice(1, -1)) {
@@ -80,25 +78,6 @@ function isCountryNumber(countryNumber, number) {
     return number.startsWith(countryNumber);
 }
 
-function createForecastCsv(areaCodeMatch) {
-    const rows = [['areacode', 'city', 'occurences']];
-    const csvString = [
-        ['areacode', 'city', 'occurences'],
-        ...areaCodeMatch.map((item) => [
-            item.areacode,
-            item.city,
-            item.occurences,
-        ]),
-    ]
-        .map((e) => e.join(','))
-        .join('\n');
-
-    fs.writeFile('forecast.csv', csvString, (err) => {
-        if (err) return console.log(err);
-        console.log('Created forecast.csv');
-    });
-}
-
 function parsePostalCodeCsv(filename) {
     const postalCodeMap = {};
     const allPostalCodes = fs
@@ -106,23 +85,35 @@ function parsePostalCodeCsv(filename) {
         .toString()
         .split('\n');
     for (const line of allPostalCodes.slice(1, -1)) {
-        let [primary_key, zipcode, city, state, community,  latitude, longitude] =
-            line.split(';');
-        postalCodeMap[city] = { zipcode: zipcode, state: state, latitude: latitude, longitude: longitude };
+        let [
+            primary_key,
+            zipcode,
+            city,
+            state,
+            community,
+            latitude,
+            longitude,
+        ] = line.split(';');
+        postalCodeMap[city] = {
+            zipcode: zipcode,
+            state: state,
+            latitude: latitude,
+            longitude: longitude,
+        };
     }
     return postalCodeMap;
 }
 
-function createHeatData(areaCodeMap, postalCodeMap, intensity = 100) {
+function createHeatData(areaCodeMap, postalCodeMap, intensity = 1.6) {
     let heatData = [];
-    Object.keys(areaCodeMap).forEach(key => {
-        if(areaCodeMap[key].occurences) {
+    Object.keys(areaCodeMap).forEach((key) => {
+        if (areaCodeMap[key].occurences) {
             heatData.push([
                 postalCodeMap[areaCodeMap[key].city].latitude,
                 postalCodeMap[areaCodeMap[key].city].longitude,
                 areaCodeMap[key].occurences * intensity,
             ]);
         }
-    })
+    });
     return JSON.stringify(heatData);
 }

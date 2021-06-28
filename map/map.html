@@ -14,14 +14,14 @@
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""
         ></script>
-        <script src="http://0.0.0.0:8000/leaflet-heat.js"></script>
+        <script src="http://0.0.0.0:8000/lib/leaflet-heat.js"></script>
     </head>
     <body>
         <div id="mapid" style="width: 1600px; height: 800px"></div>
         <script>
             var mymap = L.map('mapid').setView([51, 10], 6);
             var accessToken =
-                'sk.eyJ1IjoianVsaWFuNCIsImEiOiJja3FnaWtxdWMyMG9tMm9vdmJoNGt2czE3In0.zmP7QXUXCnPphc3uOHlEsg';
+                'access-token';
             L.tileLayer(
                 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
                 {
@@ -34,25 +34,23 @@
                     accessToken: accessToken,
                 }
             ).addTo(mymap);
-            /*
             fetch(
-                'http://0.0.0.0:8000/bundeslaender.geo.json'
+                'http://0.0.0.0:8000/map/bundeslaender.geo.json'
             )
             .then((res) => res.json())
             .then((data) => {
                 L.geoJSON(data).addTo(mymap);
             });
-            */
-            fetch('http://0.0.0.0:8000/features.geo.json')
+            fetch('http://0.0.0.0:8000/map/features.geo.json')
                 .then((res) => res.json())
                 .then((data) => {
                     L.geoJSON(data).addTo(mymap);
                 });
 
-            fetch('http://0.0.0.0:8000/heat_data.json')
+            fetch('http://0.0.0.0:8000/map/heat.json')
                 .then((res) => res.json())
                 .then((locations) => {
-                    var heat = L.heatLayer(locations, { radius: 20 });
+                    var heat = L.heatLayer(locations, { radius: 35 });
                     mymap.addLayer(heat);
                 });
         </script>
