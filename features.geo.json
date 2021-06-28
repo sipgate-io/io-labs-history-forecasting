@@ -1,0 +1,38 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Duisburg",
+                "occurences": 10
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [11, 50]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Düsseldorf",
+                "occurences": 20
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [10, 51]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Krefeld",
+                "occurences": 5
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [10, 50]
+            }
+        }
+    ]
+}

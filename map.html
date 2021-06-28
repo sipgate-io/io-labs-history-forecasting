@@ -2,7 +2,7 @@
 <html dir="ltr" lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>New Tab</title>
+        <title>History Forecast</title>
         <link
             rel="stylesheet"
             href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
@@ -14,6 +14,7 @@
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""
         ></script>
+        <script src="http://0.0.0.0:8000/leaflet-heat.js"></script>
     </head>
     <body>
         <div id="mapid" style="width: 1600px; height: 800px"></div>
@@ -33,9 +34,27 @@
                     accessToken: accessToken,
                 }
             ).addTo(mymap);
+            /*
+            fetch(
+                'http://0.0.0.0:8000/bundeslaender.geo.json'
+            )
+            .then((res) => res.json())
+            .then((data) => {
+                L.geoJSON(data).addTo(mymap);
+            });
+            */
+            fetch('http://0.0.0.0:8000/features.geo.json')
+                .then((res) => res.json())
+                .then((data) => {
+                    L.geoJSON(data).addTo(mymap);
+                });
 
-            var geojsonLayer = new L.GeoJSON.AJAX('http://0.0.0.0:8000/io-labs-history-forecasting/bundeslaender.geo.json');
-            geojsonLayer.addTo(mymap);
+            fetch('http://0.0.0.0:8000/heat_data.json')
+                .then((res) => res.json())
+                .then((locations) => {
+                    var heat = L.heatLayer(locations, { radius: 20 });
+                    mymap.addLayer(heat);
+                });
         </script>
     </body>
 </html>

@@ -54,6 +54,12 @@ historyModule
 		areaCodeMatch.forEach(element => {
 			console.log(postalCodeMap[element.city])
 		});
+
+        let heatDataJson = createHeatData(areaCodeMap, postalCodeMap);
+        fs.writeFile('heat_data.json', heatDataJson, (err) => {
+            if (err) return console.log(err);
+            console.log('Created heat_data.json');
+        });
     })
     .catch(console.error);
 
@@ -105,4 +111,18 @@ function parsePostalCodeCsv(filename) {
         postalCodeMap[city] = { zipcode: zipcode, state: state, latitude: latitude, longitude: longitude };
     }
     return postalCodeMap;
+}
+
+function createHeatData(areaCodeMap, postalCodeMap, intensity = 100) {
+    let heatData = [];
+    Object.keys(areaCodeMap).forEach(key => {
+        if(areaCodeMap[key].occurences) {
+            heatData.push([
+                postalCodeMap[areaCodeMap[key].city].latitude,
+                postalCodeMap[areaCodeMap[key].city].longitude,
+                areaCodeMap[key].occurences * intensity,
+            ]);
+        }
+    })
+    return JSON.stringify(heatData);
 }
