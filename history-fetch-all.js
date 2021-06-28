@@ -49,6 +49,11 @@ historyModule
         });
         console.log(areaCodeMatch);
         createForecastCsv(areaCodeMatch);
+
+		let postalCodeMap = parsePostalCodeCsv('ww-german-postal-codes.csv');
+		areaCodeMatch.forEach(element => {
+			console.log(postalCodeMap[element.city])
+		});
     })
     .catch(console.error);
 
@@ -86,4 +91,18 @@ function createForecastCsv(areaCodeMatch) {
         if (err) return console.log(err);
         console.log('Created forecast.csv');
     });
+}
+
+function parsePostalCodeCsv(filename) {
+    const postalCodeMap = {};
+    const allPostalCodes = fs
+        .readFileSync('./' + filename)
+        .toString()
+        .split('\n');
+    for (const line of allPostalCodes.slice(1, -1)) {
+        let [primary_key, zipcode, city, state, community,  latitude, longitude] =
+            line.split(';');
+        postalCodeMap[city] = { zipcode: zipcode, state: state, latitude: latitude, longitude: longitude };
+    }
+    return postalCodeMap;
 }
