@@ -77,7 +77,20 @@ export function fetchAll() {
                 console.log('Created ./map/heat.json');
             });
 
-            console.log('Forecast:\n', forecast(areaCodeMap, 10));
+            let forecastData = forecast(areaCodeMap, 10);
+            console.log('Forecast:\n', forecastData);
+            let topFeatureDataJSON = createFeatureJSON(
+                forecastData,
+                postalCodeMap
+            );
+            fs.writeFile(
+                './map/features.top.geo.json',
+                topFeatureDataJSON,
+                (err) => {
+                    if (err) return console.log(err);
+                    console.log('Created ./map/featues.top.geo.json');
+                }
+            );
         })
         .catch(console.error);
 }
@@ -180,7 +193,14 @@ export function forecast(areaCodeMap, maxSlice) {
         }
     });
     maxOccurrences.sort((a, b) => b[0] - a[0]);
-    return maxOccurrences.slice(0, maxSlice);
+    let newAreaMap = {};
+    for (let city of maxOccurrences.slice(0, maxSlice)) {
+        newAreaMap[city[1].key] = {
+            occurrences: city[0],
+            city: city[1].city,
+        };
+    }
+    return newAreaMap;
 }
 
 fetchAll();

@@ -1,2 +1,7 @@
 .env
 node_modules
+
+# Generated files
+map/features.top.geo.json
+map/features.geo.json
+map/heat.json
