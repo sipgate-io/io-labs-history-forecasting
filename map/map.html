@@ -52,7 +52,7 @@
             fetch('http://0.0.0.0:8000/map/heat.json')
                 .then((res) => res.json())
                 .then((locations) => {
-                    var heat = L.heatLayer(locations, { radius: 35 });
+                    var heat = L.heatLayer(locations, { radius: 100 });
                     mymap.addLayer(heat);
                 });
         </script>

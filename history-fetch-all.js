@@ -9,100 +9,96 @@ const personalAccessToken = process.env.SIPGATE_TOKEN || '';
 /**
  * For details on how to instantiate the client, see 'examples/client/client.ts'
  */
+let areaCodeMap = parseAreaCodeCSV('./data/area_codes.csv');
+let postalCodeMap = parsePostalCodeCSV('./data/postal_codes.csv');
+
 const client = sipgateIO({
     tokenId: personalAccessTokenId,
     token: personalAccessToken,
 });
 const historyModule = createHistoryModule(client);
-let areaCodeMap = parseAreaCodeCsv();
-const areaCodeMatch = [];
 
-historyModule
-    .fetchAll(
-        { types: ['SMS', 'FAX', 'CALL'], directions: ['INCOMING'] },
-        { offset: 0, limit: 100 }
-    )
-    .then((historyElements) => {
-        let maxOccurence = 0;
+function fetchAll() {
+    historyModule
+        .fetchAll(
+            { types: ['SMS', 'FAX', 'CALL'], directions: ['INCOMING'] },
+            { offset: 0, limit: 100 }
+        )
+        .then((historyElements) => {
+            let maxOccurrence = 0;
 
-        historyElements.forEach((entry) => {
-            let number = entry.source;
-            if (!isCountryNumber('+49', number)) {
-                return;
-            }
-            number = number.substring(3);
-
-            for (let i = 5; i > 1; i--) {
-                const areaCode = number.substr(0, i);
-                if (areaCodeMap[areaCode]) {
-                    areaCodeMap[areaCode].occurences += 1;
-                    if (areaCodeMap[areaCode].occurences > maxOccurence) {
-                        maxOccurence = areaCodeMap[areaCode].occurences;
-                    }
-                    break;
+            historyElements.forEach((entry) => {
+                let number = entry.source;
+                if (!isCountryNumber('+49', number)) {
+                    return;
                 }
-            }
-        });
+                number = number.substring(3);
 
-        Object.keys(areaCodeMap).forEach((key) => {
-            if (areaCodeMap[key].occurences > 0) {
-                areaCodeMatch.push({ areacode: key, ...areaCodeMap[key] });
-            }
-        });
-        areaCodeMatch.sort((firstCity, secondCity) => {
-            return secondCity.occurences - firstCity.occurences;
-        });
+                for (let i = 5; i > 1; i--) {
+                    const areaCode = number.substr(0, i);
+                    if (areaCodeMap[areaCode]) {
+                        areaCodeMap[areaCode].occurrences += 1;
+                        if (areaCodeMap[areaCode].occurrences > maxOccurrence) {
+                            maxOccurrence = areaCodeMap[areaCode].occurrences;
+                        }
+                        break;
+                    }
+                }
+            });
+            const areaCodeMatch = [];
 
-        let postalCodeMap = parsePostalCodeCsv('./data/postal-codes.csv');
-        areaCodeMatch.forEach((element) => {
-            console.log(postalCodeMap[element.city]);
-        });
+            Object.keys(areaCodeMap).forEach((key) => {
+                if (areaCodeMap[key].occurrences > 0) {
+                    areaCodeMatch.push({ areacode: key, ...areaCodeMap[key] });
+                }
+            });
 
-        let featureDataJSON = createFeatureJSON(
-            areaCodeMap,
-            postalCodeMap,
-            maxOccurence
-        );
-        fs.writeFile('./map/features.geo.json', featureDataJSON, (err) => {
-            if (err) return console.log(err);
-            console.log('Created ./map/features.geo.json');
-        });
+            areaCodeMatch.sort((firstCity, secondCity) => {
+                return secondCity.occurrences - firstCity.occurrences;
+            });
 
-        let heatDataJSON = createHeatJSON(
-            areaCodeMap,
-            postalCodeMap,
-            maxOccurence
-        );
-        fs.writeFile('./map/heat.json', heatDataJSON, (err) => {
-            if (err) return console.log(err);
-            console.log('Created ./map/heat.json');
-        });
-    })
-    .catch(console.error);
+            let featureDataJSON = createFeatureJSON(
+                areaCodeMap,
+                postalCodeMap,
+                maxOccurrence
+            );
+            fs.writeFile('./map/features.geo.json', featureDataJSON, (err) => {
+                if (err) return console.log(err);
+                console.log('Created ./map/features.geo.json');
+            });
 
-function parseAreaCodeCsv() {
+            let heatDataJSON = createHeatJSON(
+                areaCodeMap,
+                postalCodeMap,
+                maxOccurrence
+            );
+            fs.writeFile('./map/heat.json', heatDataJSON, (err) => {
+                if (err) return console.log(err);
+                console.log('Created ./map/heat.json');
+            });
+
+            console.log('Forecast:\n', forecast(areaCodeMap, 10));
+        })
+        .catch(console.error);
+}
+
+export function parseAreaCodeCSV(filename) {
     const areaCodeMap = {};
-    const allAreaCodes = fs
-        .readFileSync('./data/area_codes.csv')
-        .toString()
-        .split('\n');
+    const allAreaCodes = fs.readFileSync(filename).toString().split('\n');
     for (const line of allAreaCodes.slice(1, -1)) {
         let [areaCode, city] = line.split(';');
-        areaCodeMap[areaCode] = { city: city, occurences: 0 };
+        areaCodeMap[areaCode] = { city: city, occurrences: 0 };
     }
     return areaCodeMap;
 }
 
-function isCountryNumber(countryNumber, number) {
+export function isCountryNumber(countryNumber, number) {
     return number.startsWith(countryNumber);
 }
 
-function parsePostalCodeCsv(filename) {
+export function parsePostalCodeCSV(filename) {
     const postalCodeMap = {};
-    const allPostalCodes = fs
-        .readFileSync('./' + filename)
-        .toString()
-        .split('\n');
+    const allPostalCodes = fs.readFileSync(filename).toString().split('\n');
     for (const line of allPostalCodes.slice(1, -1)) {
         let [
             primary_key,
@@ -123,23 +119,25 @@ function parsePostalCodeCsv(filename) {
     return postalCodeMap;
 }
 
-function createFeatureJSON(areaCodeMap, postalCodeMap, maxOccurence) {
+export function createFeatureJSON(areaCodeMap, postalCodeMap) {
     let featureData = [];
     Object.keys(areaCodeMap).forEach((key) => {
-        if (areaCodeMap[key].occurences) {
-            featureData.push({
-                type: 'Feature',
-                properties: {
-                    name: `<b>${areaCodeMap[key].city}</b><br>Anrufe: ${areaCodeMap[key].occurences}`,
-                },
-                geometry: {
-                    type: 'Point',
-                    coordinates: [
-                        postalCodeMap[areaCodeMap[key].city].longitude,
-                        postalCodeMap[areaCodeMap[key].city].latitude,
-                    ],
-                },
-            });
+        if (postalCodeMap[areaCodeMap[key].city]) {
+            if (areaCodeMap[key].occurrences) {
+                featureData.push({
+                    type: 'Feature',
+                    properties: {
+                        name: `<b>${areaCodeMap[key].city}</b><br>Anrufe: ${areaCodeMap[key].occurrences}`,
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [
+                            postalCodeMap[areaCodeMap[key].city].longitude,
+                            postalCodeMap[areaCodeMap[key].city].latitude,
+                        ],
+                    },
+                });
+            }
         }
     });
     return JSON.stringify(
@@ -152,16 +150,37 @@ function createFeatureJSON(areaCodeMap, postalCodeMap, maxOccurence) {
     );
 }
 
-function createHeatJSON(areaCodeMap, postalCodeMap, maxOccurence) {
+export function createHeatJSON(areaCodeMap, postalCodeMap, maxOccurrence) {
     let heatData = [];
     Object.keys(areaCodeMap).forEach((key) => {
-        if (areaCodeMap[key].occurences) {
-            heatData.push([
-                postalCodeMap[areaCodeMap[key].city].latitude,
-                postalCodeMap[areaCodeMap[key].city].longitude,
-                (areaCodeMap[key].occurences / maxOccurence) * 100,
-            ]);
+        if (postalCodeMap[areaCodeMap[key].city]) {
+            if (areaCodeMap[key].occurrences) {
+                heatData.push([
+                    postalCodeMap[areaCodeMap[key].city].latitude,
+                    postalCodeMap[areaCodeMap[key].city].longitude,
+                    (areaCodeMap[key].occurrences / maxOccurrence) * 100,
+                ]);
+            }
         }
     });
     return JSON.stringify(heatData, null, 2);
 }
+
+export function forecast(areaCodeMap, maxSlice) {
+    let maxOccurrences = [];
+    Object.keys(areaCodeMap).forEach((key) => {
+        if (areaCodeMap[key].occurrences) {
+            maxOccurrences.push([
+                areaCodeMap[key].occurrences,
+                {
+                    key: key,
+                    city: areaCodeMap[key].city,
+                },
+            ]);
+        }
+    });
+    maxOccurrences.sort((a, b) => b[0] - a[0]);
+    return maxOccurrences.slice(0, maxSlice);
+}
+
+fetchAll();
