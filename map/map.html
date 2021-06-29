@@ -19,10 +19,14 @@
     <body>
         <div id="mapid" style="width: 1600px; height: 800px"></div>
         <script>
-            var mymap = L.map('mapid').setView([51, 10], 6);
-            var accessToken =
-                'access-token';
-            L.tileLayer(
+            var cities = L.layerGroup();
+            var states = L.layerGroup();
+            var mymap = L.map('mapid', { layers: tileLayer }).setView(
+                [51, 10],
+                6
+            );
+            var accessToken = 'access-token';
+            var tileLayer = L.tileLayer(
                 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
                 {
                     attribution:
@@ -33,28 +37,37 @@
                     zoomOffset: -1,
                     accessToken: accessToken,
                 }
-            ).addTo(mymap);
-            fetch(
-                'http://0.0.0.0:8000/map/bundeslaender.geo.json'
-            )
-            .then((res) => res.json())
-            .then((data) => {
-                L.geoJSON(data).addTo(mymap);
-            });
+            );
+            tileLayer.addTo(mymap);
+            fetch('http://0.0.0.0:8000/map/bundeslaender.geo.json')
+                .then((res) => res.json())
+                .then((data) => {
+                    var stateLayer = L.geoJSON(data);
+                    stateLayer.addTo(states);
+                });
             fetch('http://0.0.0.0:8000/map/features.geo.json')
                 .then((res) => res.json())
                 .then((data) => {
-                    L.geoJSON(data).bindTooltip(function (layer) {
+                    var cityLayer = L.geoJSON(data).bindTooltip(function (
+                        layer
+                    ) {
                         return layer.feature.properties.name;
-                    }).addTo(mymap);
+                    });
+                    cityLayer.addTo(cities);
                 });
 
             fetch('http://0.0.0.0:8000/map/heat.json')
                 .then((res) => res.json())
                 .then((locations) => {
-                    var heat = L.heatLayer(locations, { radius: 100 });
+                    var heat = L.heatLayer(locations, { radius: 70 });
                     mymap.addLayer(heat);
                 });
+            L.control
+                .layers(null, {
+                    Städte: cities.addTo(mymap),
+                    Bundesländer: states.addTo(mymap),
+                })
+                .addTo(mymap);
         </script>
     </body>
 </html>

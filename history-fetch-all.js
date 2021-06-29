@@ -18,7 +18,7 @@ const client = sipgateIO({
 });
 const historyModule = createHistoryModule(client);
 
-function fetchAll() {
+export function fetchAll() {
     historyModule
         .fetchAll(
             { types: ['SMS', 'FAX', 'CALL'], directions: ['INCOMING'] },
