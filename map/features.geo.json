@@ -1,38 +1,31 @@
 {
-    "type": "FeatureCollection",
-    "features": [
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "Duisburg",
-                "occurences": 10
-            },
-            "geometry": {
-                "type": "Point",
-                "coordinates": [11, 50]
-            }
-        },
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "Düsseldorf",
-                "occurences": 20
-            },
-            "geometry": {
-                "type": "Point",
-                "coordinates": [10, 51]
-            }
-        },
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "Krefeld",
-                "occurences": 5
-            },
-            "geometry": {
-                "type": "Point",
-                "coordinates": [10, 50]
-            }
-        }
-    ]
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "<b>Hamburg</b><br>Anrufe: 5"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          "10.1207",
+          "53.5312"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "<b>Duisburg</b><br>Anrufe: 26"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          "6.7981",
+          "51.3929"
+        ]
+      }
+    }
+  ]
 }

@@ -44,7 +44,9 @@
             fetch('http://0.0.0.0:8000/map/features.geo.json')
                 .then((res) => res.json())
                 .then((data) => {
-                    L.geoJSON(data).addTo(mymap);
+                    L.geoJSON(data).bindTooltip(function (layer) {
+                        return layer.feature.properties.name;
+                    }).addTo(mymap);
                 });
 
             fetch('http://0.0.0.0:8000/map/heat.json')
