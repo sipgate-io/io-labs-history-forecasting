@@ -9,8 +9,7 @@ const personalAccessToken = process.env.SIPGATE_TOKEN || '';
 /**
  * For details on how to instantiate the client, see 'examples/client/client.ts'
  */
-let areaCodeMap = parseAreaCodeCSV('./data/area_codes.csv');
-let postalCodeMap = parsePostalCodeCSV('./data/postal_codes.csv');
+let areaCodeMap = parseAreaCodeCSV('./data/are_codes.csv');
 
 const client = sipgateIO({
     tokenId: personalAccessTokenId,
@@ -32,7 +31,7 @@ export function fetchAll() {
                 if (!isCountryNumber('+49', number)) {
                     return;
                 }
-                number = number.substring(3);
+                number = '0' + number.substring(3);
 
                 for (let i = 5; i > 1; i--) {
                     const areaCode = number.substr(0, i);
@@ -45,33 +44,14 @@ export function fetchAll() {
                     }
                 }
             });
-            const areaCodeMatch = [];
 
-            Object.keys(areaCodeMap).forEach((key) => {
-                if (areaCodeMap[key].occurrences > 0) {
-                    areaCodeMatch.push({ areacode: key, ...areaCodeMap[key] });
-                }
-            });
-
-            areaCodeMatch.sort((firstCity, secondCity) => {
-                return secondCity.occurrences - firstCity.occurrences;
-            });
-
-            let featureDataJSON = createFeatureJSON(
-                areaCodeMap,
-                postalCodeMap,
-                maxOccurrence
-            );
+            let featureDataJSON = createFeatureJSON(areaCodeMap, maxOccurrence);
             fs.writeFile('./map/features.geo.json', featureDataJSON, (err) => {
                 if (err) return console.log(err);
                 console.log('Created ./map/features.geo.json');
             });
 
-            let heatDataJSON = createHeatJSON(
-                areaCodeMap,
-                postalCodeMap,
-                maxOccurrence
-            );
+            let heatDataJSON = createHeatJSON(areaCodeMap, maxOccurrence);
             fs.writeFile('./map/heat.json', heatDataJSON, (err) => {
                 if (err) return console.log(err);
                 console.log('Created ./map/heat.json');
@@ -79,10 +59,7 @@ export function fetchAll() {
 
             let forecastData = forecast(areaCodeMap, 10);
             console.log('Forecast:\n', forecastData);
-            let topFeatureDataJSON = createFeatureJSON(
-                forecastData,
-                postalCodeMap
-            );
+            let topFeatureDataJSON = createFeatureJSON(forecastData);
             fs.writeFile(
                 './map/features.top.geo.json',
                 topFeatureDataJSON,
@@ -98,9 +75,14 @@ export function fetchAll() {
 export function parseAreaCodeCSV(filename) {
     const areaCodeMap = {};
     const allAreaCodes = fs.readFileSync(filename).toString().split('\n');
-    for (const line of allAreaCodes.slice(1, -1)) {
-        let [areaCode, city] = line.split(';');
-        areaCodeMap[areaCode] = { city: city, occurrences: 0 };
+    for (const line of allAreaCodes) {
+        let [city, areaCode, lng, lat] = line.split(';');
+        areaCodeMap[areaCode] = {
+            city: city,
+            lng: lng,
+            lat: lat,
+            occurrences: 0,
+        };
     }
     return areaCodeMap;
 }
@@ -109,48 +91,20 @@ export function isCountryNumber(countryNumber, number) {
     return number.startsWith(countryNumber);
 }
 
-export function parsePostalCodeCSV(filename) {
-    const postalCodeMap = {};
-    const allPostalCodes = fs.readFileSync(filename).toString().split('\n');
-    for (const line of allPostalCodes.slice(1, -1)) {
-        let [
-            primary_key,
-            zipcode,
-            city,
-            state,
-            community,
-            latitude,
-            longitude,
-        ] = line.split(';');
-        postalCodeMap[city] = {
-            zipcode: zipcode,
-            state: state,
-            latitude: latitude,
-            longitude: longitude,
-        };
-    }
-    return postalCodeMap;
-}
-
-export function createFeatureJSON(areaCodeMap, postalCodeMap) {
+export function createFeatureJSON(areaCodeMap) {
     let featureData = [];
     Object.keys(areaCodeMap).forEach((key) => {
-        if (postalCodeMap[areaCodeMap[key].city]) {
-            if (areaCodeMap[key].occurrences) {
-                featureData.push({
-                    type: 'Feature',
-                    properties: {
-                        name: `<b>${areaCodeMap[key].city}</b><br>Anrufe: ${areaCodeMap[key].occurrences}`,
-                    },
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [
-                            postalCodeMap[areaCodeMap[key].city].longitude,
-                            postalCodeMap[areaCodeMap[key].city].latitude,
-                        ],
-                    },
-                });
-            }
+        if (areaCodeMap[key].occurrences) {
+            featureData.push({
+                type: 'Feature',
+                properties: {
+                    name: `<b>${areaCodeMap[key].city}</b><br>Anrufe: ${areaCodeMap[key].occurrences}`,
+                },
+                geometry: {
+                    type: 'Point',
+                    coordinates: [areaCodeMap[key].lng, areaCodeMap[key].lat],
+                },
+            });
         }
     });
     return JSON.stringify(
@@ -163,17 +117,15 @@ export function createFeatureJSON(areaCodeMap, postalCodeMap) {
     );
 }
 
-export function createHeatJSON(areaCodeMap, postalCodeMap, maxOccurrence) {
+export function createHeatJSON(areaCodeMap, maxOccurrence) {
     let heatData = [];
     Object.keys(areaCodeMap).forEach((key) => {
-        if (postalCodeMap[areaCodeMap[key].city]) {
-            if (areaCodeMap[key].occurrences) {
-                heatData.push([
-                    postalCodeMap[areaCodeMap[key].city].latitude,
-                    postalCodeMap[areaCodeMap[key].city].longitude,
-                    (areaCodeMap[key].occurrences / maxOccurrence) * 100,
-                ]);
-            }
+        if (areaCodeMap[key].occurrences) {
+            heatData.push([
+                areaCodeMap[key].lng,
+                areaCodeMap[key].lat,
+                (areaCodeMap[key].occurrences / maxOccurrence) * 100,
+            ]);
         }
     });
     return JSON.stringify(heatData, null, 2);
@@ -188,6 +140,8 @@ export function forecast(areaCodeMap, maxSlice) {
                 {
                     key: key,
                     city: areaCodeMap[key].city,
+                    lng: areaCodeMap[key].lng,
+                    lat: areaCodeMap[key].lat,
                 },
             ]);
         }
@@ -198,6 +152,8 @@ export function forecast(areaCodeMap, maxSlice) {
         newAreaMap[city[1].key] = {
             occurrences: city[0],
             city: city[1].city,
+            lng: city[1].lng,
+            lat: city[1].lat,
         };
     }
     return newAreaMap;

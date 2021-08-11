@@ -14,7 +14,7 @@
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""
         ></script>
-        <script src="http://0.0.0.0:8000/lib/leaflet-heat.js"></script>
+        <script src="http://localhost:8000/lib/leaflet-heat.js"></script>
     </head>
     <body>
         <div id="mapid" style="width: 1600px; height: 800px"></div>
@@ -40,13 +40,13 @@
                 }
             );
             tileLayer.addTo(mymap);
-            fetch('http://0.0.0.0:8000/map/bundeslaender.geo.json')
+            fetch('http://localhost:8000/map/bundeslaender.geo.json')
                 .then((res) => res.json())
                 .then((data) => {
                     var stateLayer = L.geoJSON(data);
                     stateLayer.addTo(states);
                 });
-            fetch('http://0.0.0.0:8000/map/features.geo.json')
+            fetch('http://localhost:8000/map/features.geo.json')
                 .then((res) => res.json())
                 .then((data) => {
                     var cityLayer = L.geoJSON(data).bindTooltip(function (
@@ -57,13 +57,13 @@
                     cityLayer.addTo(cities);
                 });
 
-            fetch('http://0.0.0.0:8000/map/heat.json')
+            fetch('http://localhost:8000/map/heat.json')
                 .then((res) => res.json())
                 .then((locations) => {
                     var heat = L.heatLayer(locations, { radius: 70 });
                     mymap.addLayer(heat);
                 });
-            fetch('http://0.0.0.0:8000/map/features.top.geo.json')
+            fetch('http://localhost:8000/map/features.top.geo.json')
                 .then((res) => res.json())
                 .then((cities) => {
                     var topCityLayer = L.geoJSON(cities).bindTooltip(function (
