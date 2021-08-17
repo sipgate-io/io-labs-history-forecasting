@@ -4,10 +4,10 @@ import {
     createHeatJSON,
     createFeatureJSON,
     forecast,
-} from './history-fetch-all.js';
+} from './utils.js';
 
 function createTestData(maxOccurrence) {
-    const areaCodeMap = parseAreaCodeCSV('./data/orders.csv');
+    const areaCodeMap = parseAreaCodeCSV('./data/area_codes.csv');
 
     Object.keys(areaCodeMap).forEach((key) => {
         if (Math.random() > 0.7) {
@@ -30,8 +30,8 @@ function createTestData(maxOccurrence) {
         console.log('Created ./map/heat.json');
     });
 
-    let forecastData = forecast(areaCodeMap, 100);
-    console.log('Forecast:\n', forecastData);
+    let forecastData = forecast(areaCodeMap, 10);
+    // console.log('Forecast:\n', forecastData);
     let topFeatureDataJSON = createFeatureJSON(forecastData);
     fs.writeFile('./map/features.top.geo.json', topFeatureDataJSON, (err) => {
         if (err) return console.log(err);

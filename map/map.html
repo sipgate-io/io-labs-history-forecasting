@@ -14,20 +14,16 @@
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""
         ></script>
-        <script src="http://localhost:8000/lib/leaflet-heat.js"></script>
+        <script src="http://0.0.0.0:8000/lib/leaflet-heat.js"></script>
     </head>
     <body>
         <div id="mapid" style="width: 1600px; height: 800px"></div>
         <script>
-            var cities = L.layerGroup();
-            var states = L.layerGroup();
-            var topCities = L.layerGroup();
-            var mymap = L.map('mapid', { layers: tileLayer }).setView(
-                [51, 10],
-                6
-            );
-            var accessToken = 'access-token';
-            var tileLayer = L.tileLayer(
+            const cities = L.layerGroup();
+            const states = L.layerGroup();
+            const topCities = L.layerGroup();
+            const accessToken = 'access-token';
+            const tileLayer = L.tileLayer(
                 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
                 {
                     attribution:
@@ -39,17 +35,22 @@
                     accessToken: accessToken,
                 }
             );
+            const mymap = L.map('mapid', { layers: tileLayer }).setView(
+                [51, 10],
+                6
+            );
+
             tileLayer.addTo(mymap);
-            fetch('http://localhost:8000/map/bundeslaender.geo.json')
+            fetch('http://0.0.0.0:8000/map/bundeslaender.geo.json', {mode: 'cors'})
                 .then((res) => res.json())
                 .then((data) => {
-                    var stateLayer = L.geoJSON(data);
+                    const stateLayer = L.geoJSON(data);
                     stateLayer.addTo(states);
-                });
-            fetch('http://localhost:8000/map/features.geo.json')
+                })
+            fetch('http://0.0.0.0:8000/map/features.geo.json', {mode: 'cors'})
                 .then((res) => res.json())
                 .then((data) => {
-                    var cityLayer = L.geoJSON(data).bindTooltip(function (
+                    const cityLayer = L.geoJSON(data).bindTooltip(function (
                         layer
                     ) {
                         return layer.feature.properties.name;
@@ -57,16 +58,16 @@
                     cityLayer.addTo(cities);
                 });
 
-            fetch('http://localhost:8000/map/heat.json')
+            fetch('http://0.0.0.0:8000/map/heat.json', {mode: 'cors'})
                 .then((res) => res.json())
                 .then((locations) => {
-                    var heat = L.heatLayer(locations, { radius: 70 });
+                    const heat = L.heatLayer(locations, { radius: 70 });
                     mymap.addLayer(heat);
                 });
-            fetch('http://localhost:8000/map/features.top.geo.json')
+            fetch('http://0.0.0.0:8000/map/features.top.geo.json', {mode: 'cors'})
                 .then((res) => res.json())
                 .then((cities) => {
-                    var topCityLayer = L.geoJSON(cities).bindTooltip(function (
+                    const topCityLayer = L.geoJSON(cities).bindTooltip(function (
                         layer
                     ) {
                         return layer.feature.properties.name;
