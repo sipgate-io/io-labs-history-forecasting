@@ -41,13 +41,15 @@
             );
 
             tileLayer.addTo(mymap);
-            fetch('http://0.0.0.0:8000/map/bundeslaender.geo.json', {mode: 'cors'})
+            fetch('http://0.0.0.0:8000/map/bundeslaender.geo.json', {
+                mode: 'cors',
+            })
                 .then((res) => res.json())
                 .then((data) => {
                     const stateLayer = L.geoJSON(data);
                     stateLayer.addTo(states);
-                })
-            fetch('http://0.0.0.0:8000/map/features.geo.json', {mode: 'cors'})
+                });
+            fetch('http://0.0.0.0:8000/map/features.geo.json', { mode: 'cors' })
                 .then((res) => res.json())
                 .then((data) => {
                     const cityLayer = L.geoJSON(data).bindTooltip(function (
@@ -58,20 +60,22 @@
                     cityLayer.addTo(cities);
                 });
 
-            fetch('http://0.0.0.0:8000/map/heat.json', {mode: 'cors'})
+            fetch('http://0.0.0.0:8000/map/heat.json', { mode: 'cors' })
                 .then((res) => res.json())
                 .then((locations) => {
                     const heat = L.heatLayer(locations, { radius: 70 });
                     mymap.addLayer(heat);
                 });
-            fetch('http://0.0.0.0:8000/map/features.top.geo.json', {mode: 'cors'})
+            fetch('http://0.0.0.0:8000/map/features.top.geo.json', {
+                mode: 'cors',
+            })
                 .then((res) => res.json())
                 .then((cities) => {
-                    const topCityLayer = L.geoJSON(cities).bindTooltip(function (
-                        layer
-                    ) {
-                        return layer.feature.properties.name;
-                    });
+                    const topCityLayer = L.geoJSON(cities).bindTooltip(
+                        function (layer) {
+                            return layer.feature.properties.name;
+                        }
+                    );
                     topCityLayer.addTo(topCities);
                 });
             L.control

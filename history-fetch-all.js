@@ -1,7 +1,13 @@
 import * as dotenv from 'dotenv';
-import { createHistoryModule, sipgateIO } from 'sipgateio';
-import { parseAreaCodeCSV, isCountryNumber, createFeatureJSON, createHeatJSON, forecast } from './utils.js';
 import fs from 'fs';
+import { createHistoryModule, sipgateIO } from 'sipgateio';
+import {
+    createFeatureJSON,
+    createHeatJSON,
+    forecast,
+    isCountryNumber,
+    parseAreaCodeCSV
+} from './utils.js';
 
 dotenv.config();
 
