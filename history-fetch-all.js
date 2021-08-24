@@ -72,6 +72,3 @@ export function fetchAll() {
         })
         .catch(console.error);
 }
-
-
-fetchAll();

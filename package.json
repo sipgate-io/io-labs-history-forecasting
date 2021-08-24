@@ -2,10 +2,12 @@
   "name": "io-labs-history-forecasting",
   "version": "1.0.0",
   "description": "",
-  "main": "history-fetch-all.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node history-fetch-all.js"
+    "start": "http-server -a localhost -p 8000",
+    "createData": "node index.js",
+    "createTestData": "node create-test-data.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,5 +15,8 @@
     "dotenv": "^10.0.0",
     "leaflet": "^1.7.1",
     "sipgateio": "^2.5.0"
+  },
+  "devDependencies": {
+    "http-server": "13.0.1"
   }
 }
