@@ -1,23 +1,26 @@
-# History Forecasting WIP
+# What does this project do?
 
-http://opengeodb.giswiki.org/wiki/OpenGeoDB
+We parse from our sipgate-team history all incoming calls, SMS, and Fax. We then analyze from which german area codes most events originate. Finally, the results are visualized on a heatmap of germany.
 
+# Prerequisites:
+
+- [node.js](https://nodejs.org/en/)
+- [npm](https://www.npmjs.com/)
+- [sipgate-team account](https://www.sipgateteam.de/)
+- [sipgate-team PAT](https://www.sipgate.io/rest-api/authentication#personalAccessToken) with scope ``` history-read ```
+- [mapbox-account](https://www.mapbox.com/)
+- mapbox-token (in the map/index.html replace the ```access-token``` string with your token)
+
+
+# How to run:
+```bash
+npm run createData
+npm run start
 ```
-SELECT cn.text_val AS city,
-       ac.text_val AS area_code,
-       coords.lon AS lng,
-       coords.lat AS lat,
-       max(numbers.int_val) AS count
-INTO OUTFILE 'orders.csv'
-FIELDS TERMINATED BY ';'
-LINES TERMINATED BY '\n'
-FROM geodb_textdata ac
-INNER JOIN geodb_textdata cn ON ac.loc_id = cn.loc_id
-INNER JOIN geodb_coordinates coords ON cn.loc_id = coords.loc_id
-INNER JOIN geodb_intdata numbers on coords.loc_id = numbers.loc_id
-WHERE ac.text_type='500400000'
-  AND cn.text_type='500100000'
-  AND numbers.int_type='600700000'
-GROUP BY area_code
-ORDER BY area_code;
+open http://0.0.0.0:8000/map/
+
+# How to create test data:
+
+```bash
+npm run createTestData
 ```
