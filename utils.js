@@ -50,8 +50,8 @@ export function createHeatJSON(areaCodeMap, maxOccurrence) {
     Object.keys(areaCodeMap).forEach((key) => {
         if (areaCodeMap[key].occurrences) {
             heatData.push([
-                areaCodeMap[key].lng,
                 areaCodeMap[key].lat,
+                areaCodeMap[key].lng,
                 (areaCodeMap[key].occurrences / maxOccurrence) * 100,
             ]);
         }
