@@ -4,19 +4,18 @@ We parse from our sipgate-team history all incoming calls, SMS, and Fax. We then
 
 # Prerequisites:
 
-- [node.js](https://nodejs.org/en/)
-- [npm](https://www.npmjs.com/)
-- [sipgate-team account](https://www.sipgateteam.de/)
-- [sipgate-team PAT](https://www.sipgate.io/rest-api/authentication#personalAccessToken) with scope ``` history-read ```
-- [mapbox-account](https://www.mapbox.com/)
-- mapbox-token (in the map/index.html replace the ```access-token``` string with your token)
-
+-   [node.js](https://nodejs.org/en/)
+-   [npm](https://www.npmjs.com/)
+-   [sipgate-team account](https://www.sipgateteam.de/)
+-   [sipgate-team PAT](https://www.sipgate.io/rest-api/authentication#personalAccessToken) with scope `history-read`
 
 # How to run:
+
 ```bash
 npm run createData
 npm run start
 ```
+
 open http://0.0.0.0:8000/map/
 
 # How to create test data:
