@@ -10,6 +10,7 @@ We parse from our sipgate-team history all incoming calls, SMS, and Fax. We then
 -   [sipgate-team PAT](https://www.sipgate.io/rest-api/authentication#personalAccessToken) with scope `history-read`
 
 # How to run:
+Create the `.env` file by copying the `.env.example`. Set the values according to the comment above each variable.
 
 ```bash
 npm run createData
